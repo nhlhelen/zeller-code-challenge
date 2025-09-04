@@ -1,6 +1,7 @@
 import { Checkout } from './services/Checkout';
 import { Item } from './models/Item';
 import { PricingRule } from './models/PricingRule';
+import { loadCatalog } from './utils/loadCatalog';
 
 function main(): void {
   console.log('Starting Checkout System...\n');
@@ -20,7 +21,6 @@ function main(): void {
   co.scan(item2);
   co.scan(item2);
   co.scan(item1);
-
 
   // Calculate total
   const totalAmount = co.total();
