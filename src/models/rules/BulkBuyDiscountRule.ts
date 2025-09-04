@@ -13,6 +13,11 @@ export class BulkBuyDiscountRule implements PricingRule {
 
   // Returns the discounted price with the bulk buy special
   apply(quantity: number, unitPrice: number): number {
+    // Handles negative values
+    if (quantity <= 0 || unitPrice < 0) {
+      return 0;
+    }
+    
     let total = 0;
 
     if (quantity > this.thresholdQuantity) {

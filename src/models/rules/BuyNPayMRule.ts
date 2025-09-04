@@ -12,6 +12,10 @@ export class BuyNPayMRule implements PricingRule {
   }
 
   apply(quantity: number, unitPrice: number): number {
+    // Handles negative values
+    if (quantity <= 0 || unitPrice < 0) {
+      return 0;
+    }
     // Count how many times can the discount be applied per the quantity
     const numOfTimesDiscountApplied = Math.floor(quantity / this.n);
 
