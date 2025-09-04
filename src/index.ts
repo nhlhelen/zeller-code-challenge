@@ -18,6 +18,9 @@ function main(): void {
   const co = new Checkout(pricingRules);
   co.scan(item1);
   co.scan(item2);
+  co.scan(item2);
+  co.scan(item1);
+
 
   // Calculate total
   const totalAmount = co.total();
