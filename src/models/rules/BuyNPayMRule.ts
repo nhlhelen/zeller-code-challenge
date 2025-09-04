@@ -24,9 +24,3 @@ export class BuyNPayMRule implements PricingRule {
     return total;
   }
 }
-
-// 5 for 3
-// quantity is 7
-// 7 // 5 => 1
-// remainder 2
-// total = 1 * m * price + 2 * price

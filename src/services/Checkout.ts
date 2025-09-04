@@ -49,6 +49,7 @@ export class Checkout {
           cartItem.quantity,
           cartItem.item.price
         );
+        console.log("Pricing rule applied");
       } else {
         // Add to item total as usual
         const itemTotal = cartItem.item.price * cartItem.quantity;
