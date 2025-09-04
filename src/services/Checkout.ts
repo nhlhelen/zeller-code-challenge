@@ -16,19 +16,11 @@ export class Checkout {
       console.log(
         `Updated quantity for ${item.name}: ${existingCartItem.quantity}`
       );
-      console.log(
-        `Updated: ${item.name}, qty = ${
-          existingCartItem.quantity
-        }, subtotal = $${
-          existingCartItem.item.price * existingCartItem.quantity
-        }`
-      );
     } else {
       // Create new cart item for this item
       const newCartItem: CartItem = { item, quantity: 1 };
       this.shoppingCart.set(item.sku, newCartItem);
       console.log(`Added ${item.name} to shopping cart`);
-      console.log(`Added: ${item.name}, qty = 1, subtotal = $${item.price}`);
     }
     console.log(`=====`);
   }
@@ -45,6 +37,7 @@ export class Checkout {
     let cartItems: CartItem[] = this.getCartItems();
 
     for (const cartItem of cartItems) {
+      // TODO: this assumes only one pricing rule per item
       // Find if any pricing rule applies to this item
       const applicableRule = this.pricingRules.find(
         (matched) => matched.sku === cartItem.item.sku
