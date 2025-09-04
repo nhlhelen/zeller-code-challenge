@@ -2,7 +2,9 @@ import { PricingRule } from "./PricingRule";
 
 export class ThreeForTwoRule implements PricingRule {
   sku: string;
-  constructor(sku) {}
+  constructor(sku) {
+    this.sku = sku;
+  }
 
   apply(quantity: number, unitPrice: number): number {
     // Count how many free items

@@ -45,8 +45,22 @@ export class Checkout {
     let cartItems: CartItem[] = this.getCartItems();
 
     for (const cartItem of cartItems) {
-      const itemTotal = cartItem.item.price * cartItem.quantity;
-      totalAmount += itemTotal;
+      // Find if any pricing rule applies to this item
+      const applicableRule = this.pricingRules.find(
+        (matched) => matched.sku === cartItem.item.sku
+      );
+
+      if (applicableRule) {
+        // Apply pricing rule to the item
+        totalAmount += applicableRule.apply(
+          cartItem.quantity,
+          cartItem.item.price
+        );
+      } else {
+        // Add to item total as usual
+        const itemTotal = cartItem.item.price * cartItem.quantity;
+        totalAmount += itemTotal;
+      }
     }
     console.log(`Total is ${totalAmount}`);
     return totalAmount;
