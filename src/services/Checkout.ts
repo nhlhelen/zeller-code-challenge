@@ -1,15 +1,22 @@
 import { PricingRule } from "../models/rules/PricingRule";
 import { Item } from "../models/Item";
 import { CartItem } from "../models/CartItem";
+import { loadCatalog } from "../utils/loadCatalog";
 
 export class Checkout {
   private shoppingCart = new Map<string, CartItem>(); // <sku, cartItem>
-
-  constructor(private pricingRules: PricingRule[]) {}
+  constructor(private pricingRules: PricingRule[], private catalog: Record<string, Item>) {}
 
   scan(item: Item): void {
+    // check if catalog is not empty and SKU exists in catalog
+    if (!item || Object.keys(this.catalog).length === 0 || !this.catalog[item.sku]) {
+      console.warn(`Invalid item scanned... rejecting...`);
+      return;
+    }
+
     // Find whether item is in shopping cart already
     const existingCartItem = this.shoppingCart.get(item.sku);
+
     if (existingCartItem) {
       // Update the exisiting cart item's quantity
       existingCartItem.quantity += 1;

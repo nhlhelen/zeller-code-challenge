@@ -7,7 +7,13 @@ import { BulkBuyDiscountRule } from "./models/rules/BulkBuyDiscountRule";
 
 function main(): void {
   console.log("Starting Checkout System...\n");
-  const catalog = loadCatalog("products.json");
+
+  // Load catalog and check if catalog is empty
+  const catalog = loadCatalog("src/data/catalog.json");
+  if (Object.keys(catalog).length < 1){
+    console.log(`Catalog is empty, please add items`)
+    return;
+  }
 
   // Define pricing rules
   const pricingRules: PricingRule[] = [
@@ -22,7 +28,7 @@ function main(): void {
   const item4 = catalog["vga"];
 
   // Create checkout instance
-  const co = new Checkout(pricingRules);
+  const co = new Checkout(pricingRules, catalog);
   co.scan(item3);
   co.scan(item1);
   co.scan(item1);
