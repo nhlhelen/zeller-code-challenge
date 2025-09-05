@@ -28,7 +28,7 @@ export class BuyNPayMRule implements PricingRule {
     if (!applicableItem) {
       return {
         amount: 0,
-        type: 'discount',
+        type: 'invalid',
         appliedTo: [],
         description: 'Item not found in cart'
       };
@@ -46,6 +46,17 @@ export class BuyNPayMRule implements PricingRule {
         description: 'Invalid quantity or unitPrice'
       };
     }
+
+    // Return 0 discount if quantity is less than N
+    if (quantity < this.n){
+      return {
+        amount: 0,
+        type: 'invalid',
+        appliedTo: [],
+        description: 'Quantity less than threshold'
+      };
+    }
+
     // Count how many times can the discount be applied per the quantity
     const numOfTimesDiscountApplied = Math.floor(quantity / this.n);
 
