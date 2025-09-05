@@ -23,6 +23,17 @@ export class BulkBuyDiscountRule implements PricingRule {
   // Returns the discounted price with the bulk buy special
   apply(cartItems: CartItem[]): PricingAdjustment {
     const applicableItem = cartItems.find(item => item.item.sku === this.sku);
+
+    // Check if item is applicable
+    if (!applicableItem) {
+      return {
+        amount: 0,
+        type: 'invalid',
+        appliedTo: [],
+        description: 'Item not found in cart'
+      };
+    }
+
     const quantity = applicableItem.quantity;
     const unitPrice = applicableItem.item.price;
 
@@ -44,15 +55,20 @@ export class BulkBuyDiscountRule implements PricingRule {
 
       // Calculate the adjustment from discount
       adjustment = originalTotal - discountedTotal;
-    } else {
-      adjustment = 0;
-    }
+      return {
+        amount: adjustment,
+        type: 'discount',
+        appliedTo: [applicableItem.item.sku],
+        description: `Bulk discount on ${applicableItem.quantity} ${applicableItem.item.name}`
+      };
 
-    return {
-      amount: adjustment,
-      type: 'discount',
-      appliedTo: [applicableItem.item.sku],
-      description: `Bulk discount on ${applicableItem.quantity} ${applicableItem.item.name}`
-    };
+    } else {
+      return {
+        amount: 0,
+        type: 'invalid',
+        appliedTo: [],
+        description: `No discount applied`
+      };
+    }
   }
 }
