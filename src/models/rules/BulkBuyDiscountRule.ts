@@ -1,6 +1,10 @@
+import { CartItem } from "../CartItem";
+import { PricingAdjustment } from "../PricingAdjustment";
 import { PricingRule } from "./PricingRule";
 
 export class BulkBuyDiscountRule implements PricingRule {
+  id = "BulkBuyDiscount";
+  description = "Discounted price when quantity is over threshold";
   sku: string;
   thresholdQuantity: number;
   discountedPrice: number;
@@ -11,22 +15,44 @@ export class BulkBuyDiscountRule implements PricingRule {
     this.discountedPrice = discountedPrice;
   }
 
+  canApply(cartItems: CartItem[]): boolean {
+    const applicableItem = cartItems.find(item => item.item.sku === this.sku);
+    return applicableItem !== undefined && applicableItem.quantity > this.thresholdQuantity;
+  }
+
   // Returns the discounted price with the bulk buy special
-  apply(quantity: number, unitPrice: number): number {
+  apply(cartItems: CartItem[]): PricingAdjustment {
+    const applicableItem = cartItems.find(item => item.item.sku === this.sku);
+    const quantity = applicableItem.quantity;
+    const unitPrice = applicableItem.item.price;
+
     // Handles negative values
     if (quantity <= 0 || unitPrice < 0) {
-      return 0;
+      return {
+        amount: 0,
+        type: 'invalid',
+        appliedTo: [],
+        description: 'Invalid quantity or unitPrice'
+      };
     }
     
-    let total = 0;
+    let adjustment = 0;
 
     if (quantity > this.thresholdQuantity) {
-      // Calculate sub-total with discounted price
-      total += quantity * this.discountedPrice;
+      let originalTotal = quantity * applicableItem.item.price;
+      const discountedTotal = quantity * this.discountedPrice;
+
+      // Calculate the adjustment from discount
+      adjustment = originalTotal - discountedTotal;
     } else {
-      // Calculate the normal sub-total
-      total += quantity * unitPrice;
+      adjustment = 0;
     }
-    return total;
+
+    return {
+      amount: adjustment,
+      type: 'discount',
+      appliedTo: [applicableItem.item.sku],
+      description: `Bulk discount on ${applicableItem.quantity} ${applicableItem.item.name}`
+    };
   }
 }

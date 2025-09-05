@@ -2,6 +2,7 @@ import { PricingRule } from "../models/rules/PricingRule";
 import { Item } from "../models/Item";
 import { CartItem } from "../models/CartItem";
 import { loadCatalog } from "../utils/loadCatalog";
+import { PricingAdjustment } from "../models/PricingAdjustment";
 
 export class Checkout {
   private shoppingCart = new Map<string, CartItem>(); // <sku, cartItem>
@@ -37,62 +38,70 @@ export class Checkout {
     return Array.from(this.shoppingCart.values());
   }
 
-  // Get all pricing rules for an item
-  getApplicableRules(sku: string): PricingRule[] {
-    return this.pricingRules.filter(rule => rule.sku === sku);
+  // Get original total without any rules applied
+  private getOriginalTotal(): number {
+    let total = 0;
+    const cartItems = this.getCartItems();
+    
+    for (const cartItem of cartItems) {
+      total += cartItem.item.price * cartItem.quantity;
+    }
+    
+    return total;
   }
 
-  // Handles multiple rules for the same item
-  applyMultipleRules(cartItem: CartItem, applicableRules: PricingRule[]): number {
-    if (applicableRules.length === 0) {
-      // No rules, use regular price
-      return cartItem.item.price * cartItem.quantity;
-    }
+  // Get all pricing rules for an item
+  getApplicableRules(): PricingRule[] {
+    const cartItems = this.getCartItems();
+    return this.pricingRules.filter(rule => rule.canApply(cartItems));
+  }
+
+  // Apply all rules
+  private applyPricingRules(): PricingAdjustment[] {
+    const cartItems = this.getCartItems();
+    const applicableRules = this.getApplicableRules();
     
-    if (applicableRules.length === 1) {
-      // Single rule, apply it
-      return applicableRules[0].apply(cartItem.quantity, cartItem.item.price);
-    }
-    
-    // Multiple rules: find the best price for customer (lowest total)
-    let bestPrice = cartItem.item.price * cartItem.quantity;
-    let bestRuleName = "regular price";
+    const adjustments: PricingAdjustment[] = [];
     
     for (const rule of applicableRules) {
-      const rulePrice = rule.apply(cartItem.quantity, cartItem.item.price);
-      if (rulePrice < bestPrice) {
-        bestPrice = rulePrice;
-        bestRuleName = rule.constructor.name || "pricing rule";
+      const adjustment = rule.apply(cartItems);
+      if (adjustment.amount > 0) {
+        adjustments.push(adjustment);
+        console.log(`Applied rule: ${rule.id} - ${adjustment.description}`);
       }
     }
-    
-    if (bestRuleName !== "regular price") {
-      console.log(`Best rule for ${cartItem.item.name}: ${bestRuleName}`);
-    }
-    
-    return bestPrice;
+
+    // Could have a resolving adjustments method
+    return adjustments;
   }
 
   // Calculate the total price of items in the shopping cart
   total(): number {
-    let totalAmount = 0;
-    // Get cart items as an array
-    let cartItems: CartItem[] = this.getCartItems();
+    // Total price without any pricing rules
+    const originalTotal = this.getOriginalTotal();
 
-    for (const cartItem of cartItems) {
+    // Get all adjustments from all pricing rules
+    const adjustments = this.applyPricingRules();
+    
+    // Calculate the total price adjustments
+    const totalAdjustment = adjustments.reduce(
+      (sum, adjustment) => sum + adjustment.amount, 
+      0
+    );
+    
+    // Calculate the final total
+    const finalTotal = originalTotal - totalAdjustment;
+    console.log(`Original total: $${originalTotal}`);
 
-      // Find all applicable rules instead of just the first one
-      const applicableRules = this.getApplicableRules(cartItem.item.sku);
-      
-      // Apply multiple rules logic
-      const itemTotal = this.applyMultipleRules(cartItem, applicableRules);
-      totalAmount += itemTotal;
-
-      if (applicableRules.length >= 1) {
-        console.log(`Found ${applicableRules.length} pricing rule(s) for ${cartItem.item.name}`);
-      }
+    if (totalAdjustment > 0) {
+      // Display receipt with discounts applied
+      console.log(`Total discounts: -$${totalAdjustment}`);
+      adjustments.forEach(adj => {
+        console.log(`  - ${adj.description}: -$${adj.amount}`);
+      });
     }
-    console.log(`Total is $${totalAmount}`);
-    return totalAmount;
+    console.log(`Final total: $${finalTotal}`);
+    
+    return finalTotal;
   }
 }
