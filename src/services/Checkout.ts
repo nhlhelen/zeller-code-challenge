@@ -37,6 +37,42 @@ export class Checkout {
     return Array.from(this.shoppingCart.values());
   }
 
+  // Get all pricing rules for an item
+  getApplicableRules(sku: string): PricingRule[] {
+    return this.pricingRules.filter(rule => rule.sku === sku);
+  }
+
+  // Handles multiple rules for the same item
+  applyMultipleRules(cartItem: CartItem, applicableRules: PricingRule[]): number {
+    if (applicableRules.length === 0) {
+      // No rules, use regular price
+      return cartItem.item.price * cartItem.quantity;
+    }
+    
+    if (applicableRules.length === 1) {
+      // Single rule, apply it
+      return applicableRules[0].apply(cartItem.quantity, cartItem.item.price);
+    }
+    
+    // Multiple rules: find the best price for customer (lowest total)
+    let bestPrice = cartItem.item.price * cartItem.quantity;
+    let bestRuleName = "regular price";
+    
+    for (const rule of applicableRules) {
+      const rulePrice = rule.apply(cartItem.quantity, cartItem.item.price);
+      if (rulePrice < bestPrice) {
+        bestPrice = rulePrice;
+        bestRuleName = rule.constructor.name || "pricing rule";
+      }
+    }
+    
+    if (bestRuleName !== "regular price") {
+      console.log(`Best rule for ${cartItem.item.name}: ${bestRuleName}`);
+    }
+    
+    return bestPrice;
+  }
+
   // Calculate the total price of items in the shopping cart
   total(): number {
     let totalAmount = 0;
@@ -44,26 +80,19 @@ export class Checkout {
     let cartItems: CartItem[] = this.getCartItems();
 
     for (const cartItem of cartItems) {
-      // TODO: this assumes only one pricing rule per item
-      // Find if any pricing rule applies to this item
-      const applicableRule = this.pricingRules.find(
-        (matched) => matched.sku === cartItem.item.sku
-      );
 
-      if (applicableRule) {
-        // Apply pricing rule to the item
-        totalAmount += applicableRule.apply(
-          cartItem.quantity,
-          cartItem.item.price
-        );
-        console.log("Pricing rule applied");
-      } else {
-        // Add to item total as usual
-        const itemTotal = cartItem.item.price * cartItem.quantity;
-        totalAmount += itemTotal;
+      // Find all applicable rules instead of just the first one
+      const applicableRules = this.getApplicableRules(cartItem.item.sku);
+      
+      // Apply multiple rules logic
+      const itemTotal = this.applyMultipleRules(cartItem, applicableRules);
+      totalAmount += itemTotal;
+
+      if (applicableRules.length >= 1) {
+        console.log(`Found ${applicableRules.length} pricing rule(s) for ${cartItem.item.name}`);
       }
     }
-    console.log(`Total is ${totalAmount}`);
+    console.log(`Total is $${totalAmount}`);
     return totalAmount;
   }
 }
