@@ -29,4 +29,8 @@ describe("BuyNPayMRule", () => {
   test("Handles negative value in unit price", () => {
     expect(rule.apply(-1, -99.99)).toBeCloseTo(0);
   });
+
+  test("Returns 0 when quantity is 0", () => {
+    expect(rule.apply(0, 499.99)).toBeCloseTo(0);
+  });
 });

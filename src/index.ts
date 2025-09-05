@@ -7,6 +7,7 @@ import { BulkBuyDiscountRule } from "./models/rules/BulkBuyDiscountRule";
 
 function main(): void {
   console.log("Starting Checkout System...\n");
+  const catalog = loadCatalog("products.json");
 
   // Define pricing rules
   const pricingRules: PricingRule[] = [
@@ -15,11 +16,10 @@ function main(): void {
   ];
 
   // Define items
-  const item1: Item = { sku: "ipd", name: "Super iPad", price: 549.99 };
-  const item2: Item = { sku: "mbp", name: "MacBook Pro", price: 1399.99 };
-  const item3: Item = { sku: "atv", name: "Apple TV", price: 109.5 };
-  const item4: Item = { sku: "vga", name: "VGA adapter", price: 30.00 };
-
+  const item1 = catalog["ipd"];
+  const item2 = catalog["mbp"];
+  const item3 = catalog["atv"];
+  const item4 = catalog["vga"];
 
   // Create checkout instance
   const co = new Checkout(pricingRules);
