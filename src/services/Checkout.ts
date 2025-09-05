@@ -56,22 +56,25 @@ export class Checkout {
     return this.pricingRules.filter(rule => rule.canApply(cartItems));
   }
 
-  // Apply all rules
+  // Apply all rules then return all pricing adjustments
   private applyPricingRules(): PricingAdjustment[] {
     const cartItems = this.getCartItems();
     const applicableRules = this.getApplicableRules();
     
     const adjustments: PricingAdjustment[] = [];
     
+    // Check for each pricing rule, if any pricing adjustments will be applied
     for (const rule of applicableRules) {
       const adjustment = rule.apply(cartItems);
+
       if (adjustment.amount > 0) {
+        // Collect all applicable pricing adjustments
         adjustments.push(adjustment);
-        console.log(`Applied rule: ${rule.id} - ${adjustment.description}`);
+        console.log(`Applied rule: ${rule.id} -- ${adjustment.description}`);
       }
     }
 
-    // Could have a resolving adjustments method
+    // Return all adjustments for a better receipt and management
     return adjustments;
   }
 
@@ -95,9 +98,9 @@ export class Checkout {
 
     if (totalAdjustment > 0) {
       // Display receipt with discounts applied
-      console.log(`Total discounts: -$${totalAdjustment}`);
+      console.log(`Total discounts:`);
       adjustments.forEach(adj => {
-        console.log(`  - ${adj.description}: -$${adj.amount}`);
+        console.log(`   - ${adj.description}: -$${adj.amount}`);
       });
     }
     console.log(`Final total: $${finalTotal}`);

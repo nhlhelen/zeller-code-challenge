@@ -1,5 +1,4 @@
 import { Checkout } from "./services/Checkout";
-import { Item } from "./models/Item";
 import { PricingRule } from "./models/rules/PricingRule";
 import { loadCatalog } from "./utils/loadCatalog";
 import { BuyNPayMRule } from "./models/rules/BuyNPayMRule";
